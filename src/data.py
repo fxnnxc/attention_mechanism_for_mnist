@@ -5,7 +5,6 @@ from torch.utils.data import DataLoader, Dataset
 from torchvision.datasets import MNIST
 import os 
 
-
 class TokenDataset(Dataset):
     def __init__(self, train=True):
         if  not os.path.exists("untracked"):

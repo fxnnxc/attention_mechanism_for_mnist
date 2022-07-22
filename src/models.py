@@ -4,7 +4,7 @@ import torch
 import torch.nn as nn
 
 class AttentionPool(nn.Module):
-    def __init__(self):
+    def __init__(self, use_fixed_query_vector=True):
         super().__init__()
         hidden_dim = 32 
         num_heads = 4 
@@ -12,12 +12,18 @@ class AttentionPool(nn.Module):
         # https://pytorch.org/docs/stable/generated/torch.nn.MultiheadAttention.html
         self.self_attention = nn.MultiheadAttention(hidden_dim, num_heads=num_heads, batch_first=True)
         self.classifier = nn.Linear(hidden_dim, 10)
-        self.query = nn.Parameter(torch.rand(1,1,hidden_dim))
+        if use_fixed_query_vector:
+            self.query = nn.Parameter(torch.rand(1,1,hidden_dim))
+        else:
+            self.query = None
 
     def forward(self, x):
         batch_size = x.size(0)
         x = self.patch_encoder(x)
-        query = self.query.repeat(batch_size, 1,1)
+        if self.query is not None:
+            query = self.query.repeat(batch_size, 1,1)
+        else:
+            query = x 
         attn_output, attn_output_weights = self.self_attention(query=query, key=x, value=x)
         x = attn_output[:,0,:]
         x = self.classifier(x)
